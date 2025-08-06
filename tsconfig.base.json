@@ -14,7 +14,9 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@loomi-workspace/rabbimq": ["apps/libs/rabbimq/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
