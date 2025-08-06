@@ -1,0 +1,17 @@
+{
+  "name": "loomibank-workspace-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "implicitDependencies": ["loomibank-workspace"],
+  "targets": {
+    "e2e": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
+      "options": {
+        "jestConfig": "apps/loomibank-workspace-e2e/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "dependsOn": ["loomibank-workspace:build", "loomibank-workspace:serve"]
+    }
+  }
+}
