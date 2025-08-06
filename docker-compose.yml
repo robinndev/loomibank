@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bank_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - '6379:6379'
+
+  clients-service:
+    build:
+      context: .
+      dockerfile: apps/clients/Dockerfile
+    ports:
+      - '3001:3001' # mapeando porta 3001 interna e externa
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      PORT: 3001 # para Nest ouvir na porta 3001
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/bank_db
+      REDIS_URL: redis://redis:6379
+
+  transactions-service:
+    build:
+      context: .
+      dockerfile: apps/transactions/Dockerfile
+    ports:
+      - '3002:3002' # mapeando porta 3002 interna e externa
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      PORT: 3002 # para Nest ouvir na porta 3002
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/bank_db
+      REDIS_URL: redis://redis:6379
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    ports:
+      - '3000:3000' # gateway exposto na 3000
+    depends_on:
+      - clients-service
+      - transactions-service
+    environment:
+      PORT: 3000 # gateway escutando na 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/bank_db
+      REDIS_URL: redis://redis:6379
+
+volumes:
+  pgdata:
