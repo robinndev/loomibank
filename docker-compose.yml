@@ -10,9 +10,9 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: bank_db
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro # monta script para criar bancos
 
   redis:
     image: redis
@@ -25,13 +25,13 @@ services:
       context: .
       dockerfile: apps/clients/Dockerfile
     ports:
-      - '3001:3001' # mapeando porta 3001 interna e externa
+      - '3001:3001'
     depends_on:
       - postgres
       - redis
     environment:
-      PORT: 3001 # para Nest ouvir na porta 3001
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/bank_db
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/clients_db
       REDIS_URL: redis://redis:6379
 
   transactions-service:
@@ -39,13 +39,13 @@ services:
       context: .
       dockerfile: apps/transactions/Dockerfile
     ports:
-      - '3002:3002' # mapeando porta 3002 interna e externa
+      - '3002:3002'
     depends_on:
       - postgres
       - redis
     environment:
-      PORT: 3002 # para Nest ouvir na porta 3002
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/bank_db
+      PORT: 3002
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/transactions_db
       REDIS_URL: redis://redis:6379
 
   api-gateway:
@@ -53,13 +53,14 @@ services:
       context: .
       dockerfile: apps/api-gateway/Dockerfile
     ports:
-      - '3000:3000' # gateway exposto na 3000
+      - '3000:3000'
     depends_on:
       - clients-service
       - transactions-service
     environment:
-      PORT: 3000 # gateway escutando na 3000
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/bank_db
+      PORT: 3000
+      # Gateway pode ou não usar banco, se usar, ajustar a URL, caso contrário remova
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/clients_db
       REDIS_URL: redis://redis:6379
 
 volumes:
